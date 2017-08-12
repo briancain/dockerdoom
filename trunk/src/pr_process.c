@@ -6,6 +6,7 @@
 // Copyright (C) 1999 by Dennis Chao
 // Copyright (C) 2000 by David Koppenhofer
 // Copyright (C) 2015 by Gideon Redelinghuys
+// Copyright (C) 2017 by Brian Cain
 
 #include <stdlib.h>
 #include <math.h>
@@ -117,7 +118,7 @@ void pr_check(void) {
        (gameepisode > 1) ||
        (gamemission != doom && gamemission != doom2) ||
        (demorecording) ||
-       (demoplayback) || 
+       (demoplayback) ||
        (gamestate == GS_DEMOSCREEN) ||
        (nopsmon)
      )
@@ -125,7 +126,10 @@ void pr_check(void) {
      return;
   }
 
-  f = popen("echo list | nc -U /dockerdoom.socket", "r");
+  // NOTE: For a container to connect to a macOS host,
+  // it must use this localhost alias
+  // https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach/43541681#43541681
+  f = popen("echo list | nc docker.for.mac.localhost 8888", "r");
 
   if (!f) {
     fprintf(stderr, "ERROR: pr_check could not open ps\n");
@@ -255,7 +259,7 @@ void add_to_pid_list(int pid, const char *name, int demon) {
                pid_list_pos->height >>= 2;
 
                // if any of these conditions, we CAN'T resurrect
-               if ( !(pid_list_pos->flags & MF_CORPSE)  || 
+               if ( !(pid_list_pos->flags & MF_CORPSE)  ||
                      (pid_list_pos->tics != -1)  ||
                      (pid_list_pos->info->raisestate == S_NULL) ||
                     !(position_ok)  ) {  // can't raise it: delete and respawn
@@ -668,7 +672,10 @@ void pr_kill(char* name) {
   if ( nopsact ){
      return;
   }
-  sprintf(buf, "echo \"kill %s\" | nc -U /dockerdoom.socket", name);
+  // NOTE: For a container to connect to a macOS host,
+  // it must use this localhost alias
+  // https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach/43541681#43541681
+  sprintf(buf, "echo \"kill %s\" | nc docker.for.mac.localhost 8888", name);
   system(buf);
 }
 
